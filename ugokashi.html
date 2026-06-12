@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>うごかしくん｜動くLINEスタンプ・絵文字メーカー</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='34' r='26' fill='%2306C755'/%3E%3Ccircle cx='32' cy='30' r='26' fill='%2348D982'/%3E%3Ccircle cx='24' cy='28' r='4' fill='white'/%3E%3Ccircle cx='40' cy='28' r='4' fill='white'/%3E%3Cpath d='M24 38 Q32 46 40 38' stroke='white' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Crimson+Pro:ital,wght@0,400;0,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #06C755;
+    --green-deep: #04A848;
+    --ink: #2d3d28;
+    --line: #d4e6c8;
+    --line-strong: #a9c79a;
+    --chip-bg: #e6f1de;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Zen Maru Gothic', sans-serif;
+    background-color: #f4faf0;
+    color: var(--ink);
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(123, 184, 111, 0.10) 0%, transparent 50%),
+      radial-gradient(circle at 80% 90%, rgba(95, 168, 86, 0.08) 0%, transparent 50%);
+    min-height: 100vh;
+    margin: 0;
+    line-height: 1.7;
+  }
+  main { max-width: 1080px; margin: 0 auto; padding: 20px 16px 64px; }
+  header { text-align: center; padding: 30px 16px 6px; }
+  h1 { font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 900; font-size: 30px; margin: 0; letter-spacing: 0.04em; }
+  h1 .dot { color: var(--green); }
+  .subtitle { color: #5a7250; font-size: 14px; margin: 6px 0 0; }
+  h2 { font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 700; font-size: 17px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+  .step-num {
+    display: inline-grid; place-items: center;
+    width: 26px; height: 26px; border-radius: 999px;
+    background: var(--green); color: white;
+    font-family: 'Crimson Pro', serif; font-size: 15px; font-weight: 600;
+    flex: none;
+  }
+  .card {
+    background: #fff; border: 1px solid var(--line); border-radius: 14px;
+    padding: 18px 20px; margin-top: 16px;
+  }
+  .tabs { display: flex; gap: 8px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+  .tab {
+    border: 1px solid var(--line-strong); background: #fff; color: var(--ink);
+    border-radius: 999px; padding: 9px 20px; font-family: inherit; font-size: 14px; font-weight: 700;
+    cursor: pointer;
+  }
+  .tab.active { background: var(--green); border-color: var(--green); color: #fff; }
+  .note { color: #6b8060; font-size: 12.5px; }
+  .warn { color: #8b4a30; font-size: 12.5px; }
+  button.act {
+    border: 1px solid var(--line-strong); background: var(--chip-bg); color: var(--ink);
+    border-radius: 9px; padding: 8px 16px; font-family: inherit; font-size: 14px; font-weight: 700;
+    cursor: pointer; min-height: 40px;
+  }
+  button.act:hover { background: #d8e9cb; }
+  button.act.pri { background: var(--green); border-color: var(--green); color: #fff; }
+  button.act.pri:hover { background: var(--green-deep); }
+  button.act:disabled { opacity: 0.45; cursor: not-allowed; }
+  select, input[type=number] {
+    font-family: inherit; font-size: 14px; color: var(--ink);
+    border: 1px solid #c8dfc0; border-radius: 8px; background: #fff;
+    padding: 6px 8px; min-height: 38px;
+  }
+  input[type=number] { width: 72px; }
+  textarea {
+    width: 100%; min-height: 230px; border: 1px solid #c8dfc0; border-radius: 10px;
+    padding: 12px; font: 13px/1.7 'Zen Maru Gothic', sans-serif; color: var(--ink); resize: vertical;
+  }
+  .row { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin: 8px 0; }
+  .row label { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; }
+  .seg { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+  .seg button {
+    border: 1px solid var(--line-strong); background: #fff; color: var(--ink);
+    border-radius: 999px; padding: 6px 14px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  .seg button.on { background: var(--green); border-color: var(--green); color: #fff; }
+  .drop {
+    border: 2px dashed var(--line-strong); border-radius: 12px;
+    padding: 26px 16px; text-align: center; color: #5a7250; cursor: pointer;
+    transition: background 0.15s;
+    font-size: 14px;
+  }
+  .drop:hover, .drop.over { background: #eef6e8; }
+  .drop img.mini { max-height: 120px; max-width: 100%; display: block; margin: 10px auto 0; border-radius: 8px;
+    background: repeating-conic-gradient(#e8e8e8 0% 25%, #fff 0% 50%) 0 0/16px 16px; }
+  #cellGrid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px; margin-top: 6px;
+  }
+  .cell {
+    border: 1px solid var(--line); border-radius: 12px; padding: 10px;
+    background: #fbfdf9; display: flex; flex-direction: column; gap: 7px;
+  }
+  .cell.off { opacity: 0.45; }
+  .cell canvas {
+    width: 100%; border-radius: 8px; align-self: center;
+    background: repeating-conic-gradient(#ececec 0% 25%, #fff 0% 50%) 0 0/14px 14px;
+  }
+  .cell select { width: 100%; min-height: 34px; font-size: 12.5px; padding: 4px 6px; }
+  .cell .meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #5a7250; flex-wrap: wrap; }
+  .cell .meta .no { font-family: 'Crimson Pro', serif; font-size: 17px; font-weight: 600; color: #5a7250; }
+  .cell .res { display: flex; align-items: center; gap: 8px; min-height: 20px; }
+  .cell .res img { width: 44px; height: 44px; object-fit: contain;
+    background: repeating-conic-gradient(#ececec 0% 25%, #fff 0% 50%) 0 0/10px 10px; border-radius: 6px; }
+  .badge {
+    display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 11px; font-weight: 700;
+    background: var(--chip-bg); border: 1px solid var(--line-strong); color: #2d4a25;
+  }
+  .badge.ng { background: #f5e0d8; border-color: #d4a08a; color: #8b4a30; }
+  .bar-wrap { background: var(--chip-bg); border-radius: 999px; height: 10px; overflow: hidden; margin: 10px 0 4px; display: none; }
+  .bar { background: var(--green); height: 100%; width: 0%; transition: width 0.2s; }
+  details.help { margin-top: 10px; }
+  details.help summary { cursor: pointer; font-weight: 700; font-size: 14px; color: #3a4d33; }
+  details.help li { font-size: 13px; }
+  ul.spec { font-size: 13px; padding-left: 1.3em; margin: 8px 0; }
+  footer { text-align: center; color: #8ba07d; font-size: 12px; padding: 24px 16px; }
+  footer a { color: #5a7250; }
+  .out-preview { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+  .out-preview img { max-width: 200px; border-radius: 10px;
+    background: repeating-conic-gradient(#ececec 0% 25%, #fff 0% 50%) 0 0/16px 16px; }
+  #playB { width: 180px; border-radius: 10px;
+    background: repeating-conic-gradient(#ececec 0% 25%, #fff 0% 50%) 0 0/16px 16px; }
+  @media (max-width: 520px) {
+    h1 { font-size: 24px; }
+    .card { padding: 14px; }
+    #cellGrid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>うごかしくん<span class="dot">●</span></h1>
+  <p class="subtitle">1枚のシートから「動くLINEスタンプ・動く絵文字」(APNG)をまとめてつくるツール</p>
+  <div class="tabs">
+    <button class="tab active" id="tabA" type="button">シートから自動アニメ（おすすめ）</button>
+    <button class="tab" id="tabB" type="button">スプライトシート変換</button>
+  </div>
+</header>
+<main>
+
+<!-- ============ モードA: シートから自動アニメ ============ -->
+<section id="modeA">
+  <div class="card">
+    <h2><span class="step-num">1</span>つくるものとシートの割り方</h2>
+    <div class="row">
+      <label><input type="radio" name="kind" value="stamp" checked> 動くスタンプ <span class="note">(最大320×270px / 8・16・24個)</span></label>
+      <label><input type="radio" name="kind" value="emoji"> 動く絵文字 <span class="note">(180×180px / 8〜40個)</span></label>
+    </div>
+    <div class="row">
+      <span style="font-size:14px;font-weight:700">シートの割り方:</span>
+      <span class="seg" id="gridPresets"></span>
+      <label>列 <input type="number" id="cols" min="1" max="10" value="4"></label>
+      <label>行 <input type="number" id="rows" min="1" max="10" value="4"></label>
+    </div>
+    <p class="note">いつもの静止スタンプ用と同じ、1枚に絵を並べたシートをそのまま使えます。コマごとに切り出して、1コマずつ自動でアニメーションにします。</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="step-num">2</span>シート画像を読み込む</h2>
+    <div class="drop" id="dropA">ここにシート画像をドロップ、またはクリックして選択<br><span class="note">PNG / JPG / WebP対応。透過PNGならそのまま、白背景なら下のチェックで透過にできます。</span></div>
+    <input type="file" id="fileA" accept="image/*" hidden>
+    <div class="row" style="margin-top:10px">
+      <label><input type="checkbox" id="bgRemove" checked> 白背景を透過する</label>
+      <label>白とみなす範囲 <input type="range" id="bgTol" min="2" max="50" value="15"></label>
+      <button class="act" id="resliceBtn" type="button" disabled>切り出しをやり直す</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step-num">3</span>動きの設定</h2>
+    <div class="row">
+      <label>フレーム数 <input type="number" id="frameCount" min="5" max="20" value="10"></label>
+      <label>1ループの長さ
+        <select id="durSel">
+          <option value="500">0.5秒</option>
+          <option value="1000" selected>1秒</option>
+          <option value="1500">1.5秒</option>
+          <option value="2000">2秒</option>
+          <option value="3000">3秒</option>
+          <option value="4000">4秒</option>
+        </select>
+      </label>
+      <label>ループ回数
+        <select id="loopSel">
+          <option value="auto" selected>自動</option>
+          <option value="1">1回</option><option value="2">2回</option>
+          <option value="3">3回</option><option value="4">4回</option>
+        </select>
+      </label>
+      <span class="note" id="totalTime"></span>
+    </div>
+    <div class="row">
+      <label>動きの強さ <input type="range" id="intensity" min="50" max="150" value="100"> <span id="intensityVal" class="note">100%</span></label>
+    </div>
+    <div class="row">
+      <label>まとめて
+        <select id="bulkPreset"></select>
+      </label>
+      <button class="act" id="bulkApply" type="button">全コマに適用</button>
+      <button class="act" id="bulkRandom" type="button">おまかせで割り当て</button>
+    </div>
+    <p class="note">動きはLINEの規格(5〜20フレーム・再生時間合計4秒以内)に合わせて書き出します。ループ回数「自動」は4秒に収まる最大回数になります。</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="step-num">4</span>プレビューして書き出す</h2>
+    <p class="note" id="cellsHint">シート画像を読み込むと、ここに動くプレビューが並びます。</p>
+    <div id="cellGrid"></div>
+    <div class="bar-wrap" id="barWrap"><div class="bar" id="bar"></div></div>
+    <p class="note" id="genStatus"></p>
+    <div class="row" style="margin-top:12px">
+      <button class="act pri" id="genBtn" type="button" disabled>APNGをいっせいに生成</button>
+      <button class="act" id="zipBtn" type="button" disabled>ZIPでダウンロード</button>
+    </div>
+    <p class="note">スタンプのZIPには <b>main.png</b>(240×240のAPNG)・<b>tab.png</b>(96×74の静止PNG)・<b>01.png〜</b>が入ります。「メイン」に選んだコマがmain.pngとtab.pngになります。絵文字のZIPは <b>001.png〜</b> と <b>tab.png</b> です。</p>
+  </div>
+</section>
+
+<!-- ============ モードB: スプライトシート変換 ============ -->
+<section id="modeB" hidden>
+  <div class="card">
+    <h2><span class="step-num">1</span>スプライトシートを画像生成AIに描いてもらう</h2>
+    <div class="row">
+      <label>列 <input type="number" id="colsB" min="1" max="10" value="4"></label>
+      <label>行 <input type="number" id="rowsB" min="1" max="10" value="2"></label>
+      <label>使うコマ数 <input type="number" id="framesB" min="2" max="20" value="8"></label>
+      <button class="act" id="promptRemake" type="button">テンプレを作り直す</button>
+      <button class="act" id="promptCopy" type="button">プロンプトをコピー</button>
+    </div>
+    <textarea id="promptArea" spellcheck="false"></textarea>
+    <p class="note">パラパラ漫画のように少しずつ動くコマを1枚に並べた画像を作ってもらい、下で読み込みます。コマの位置ズレが少ないほどきれいに動きます。</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="step-num">2</span>シートを読み込んでAPNGに変換</h2>
+    <div class="drop" id="dropB">ここにスプライトシートをドロップ、またはクリックして選択</div>
+    <input type="file" id="fileB" accept="image/*" hidden>
+    <div class="row" style="margin-top:10px">
+      <label><input type="checkbox" id="bgRemoveB" checked> 白背景を透過する</label>
+      <label>白とみなす範囲 <input type="range" id="bgTolB" min="2" max="50" value="15"></label>
+    </div>
+    <div class="row">
+      <span style="font-size:14px;font-weight:700">書き出しサイズ:</span>
+      <label><input type="radio" name="sizeB" value="stamp" checked> スタンプ(320×270)</label>
+      <label><input type="radio" name="sizeB" value="emoji"> 絵文字(180×180)</label>
+      <label><input type="radio" name="sizeB" value="main"> メイン画像(240×240)</label>
+    </div>
+    <div class="row">
+      <label>1ループの長さ
+        <select id="durSelB">
+          <option value="500">0.5秒</option>
+          <option value="1000" selected>1秒</option>
+          <option value="1500">1.5秒</option>
+          <option value="2000">2秒</option>
+          <option value="3000">3秒</option>
+          <option value="4000">4秒</option>
+        </select>
+      </label>
+      <label>ループ回数
+        <select id="loopSelB">
+          <option value="auto" selected>自動</option>
+          <option value="1">1回</option><option value="2">2回</option>
+          <option value="3">3回</option><option value="4">4回</option>
+        </select>
+      </label>
+    </div>
+    <div class="out-preview">
+      <canvas id="playB" width="320" height="270" hidden></canvas>
+      <div>
+        <div class="row">
+          <button class="act pri" id="convBtn" type="button" disabled>APNGに変換</button>
+          <button class="act" id="dlBtn" type="button" disabled>ダウンロード</button>
+        </div>
+        <p class="note" id="statusB"></p>
+        <img id="outB" alt="" hidden>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 規格メモ ============ -->
+<div class="card">
+  <details class="help">
+    <summary>LINEの動くスタンプ・絵文字の規格メモ（2025年時点）</summary>
+    <ul class="spec">
+      <li>形式はAPNG。フレーム数5〜20、再生時間はループ込みで最大4秒、1ファイル300KB以下。</li>
+      <li>動くスタンプ: 最大 W320×H270px。1セット8・16・24個。メイン画像はAPNGのW240×H240px、タブ画像は静止PNGのW96×H74px。</li>
+      <li>動く絵文字: W180×H180px。1セット8〜40個。</li>
+      <li>背景は透過が必要です（このツールの「白背景を透過」で対応できます）。</li>
+      <li>300KBを超えそうなときは自動で色数を減らして再圧縮します。それでも超える場合は赤い表示になるので、フレーム数を減らすか、1ループの長さを短くしてみてください。</li>
+    </ul>
+    <p class="warn">※ 規格は変わることがあります。申請前にLINE Creators Marketの最新ガイドラインで確認してください。</p>
+  </details>
+</div>
+
+</main>
+<footer>
+  うごかしくん — ブラウザの中だけで動きます。画像はどこにも送信されません。<br>
+  <a href="index.html">LINE申請コピペさん</a> / <a href="tagm.html">タグマネージャー</a>
+</footer>
+
+<script>
+'use strict';
+/* ==================================================================
+ * CORE: APNGエンコーダ + ZIP生成（外部ライブラリ不要・Node.jsでも動作）
+ * ================================================================== */
+/*==CORE-START==*/
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c;
+  }
+  return t;
+})();
+function crc32(buf, off, len) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < len; i++) c = CRC_TABLE[(c ^ buf[off + i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+async function deflateBytes(u8) {
+  const stream = new Blob([u8]).stream().pipeThrough(new CompressionStream('deflate'));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+function pngChunk(type, data) {
+  const out = new Uint8Array(12 + data.length);
+  const dv = new DataView(out.buffer);
+  dv.setUint32(0, data.length);
+  for (let i = 0; i < 4; i++) out[4 + i] = type.charCodeAt(i);
+  out.set(data, 8);
+  dv.setUint32(8 + data.length, crc32(out, 4, 4 + data.length));
+  return out;
+}
+function concatBytes(parts) {
+  let n = 0;
+  for (const p of parts) n += p.length;
+  const out = new Uint8Array(n);
+  let o = 0;
+  for (const p of parts) { out.set(p, o); o += p.length; }
+  return out;
+}
+
+// RGBAフレーム群をmaxColors色のパレットへ量子化(メディアンカット)
+function quantizeFrames(frames, maxColors) {
+  const counts = new Map();
+  for (const f of frames) {
+    const u32 = new Uint32Array(f.buffer, f.byteOffset, f.byteLength >> 2);
+    for (let i = 0; i < u32.length; i++) {
+      let p = u32[i];
+      if ((p >>> 24) < 8) p = 0; // ほぼ透明は完全透明に寄せる
+      counts.set(p, (counts.get(p) || 0) + 1);
+    }
+  }
+  const hasTrans = counts.has(0);
+  const opaque = [];
+  for (const [p, n] of counts) {
+    if (p === 0) continue;
+    opaque.push({ r: p & 255, g: (p >>> 8) & 255, b: (p >>> 16) & 255, a: p >>> 24, n });
+  }
+  const budget = Math.max(1, maxColors - (hasTrans ? 1 : 0));
+  let boxes = opaque.length ? [opaque] : [];
+  const range = (box) => {
+    const mn = [255, 255, 255, 255], mx = [0, 0, 0, 0];
+    for (const c of box) {
+      const v = [c.r, c.g, c.b, c.a];
+      for (let k = 0; k < 4; k++) { if (v[k] < mn[k]) mn[k] = v[k]; if (v[k] > mx[k]) mx[k] = v[k]; }
+    }
+    let ch = 0, w = -1;
+    for (let k = 0; k < 4; k++) if (mx[k] - mn[k] > w) { w = mx[k] - mn[k]; ch = k; }
+    return { ch, w };
+  };
+  while (boxes.length < budget) {
+    let bi = -1, bs = 0;
+    for (let i = 0; i < boxes.length; i++) {
+      if (boxes[i].length < 2) continue;
+      const { w } = range(boxes[i]);
+      let pop = 0;
+      for (const c of boxes[i]) pop += c.n;
+      const s = w * Math.sqrt(pop);
+      if (s > bs) { bs = s; bi = i; }
+    }
+    if (bi < 0) break;
+    const box = boxes[bi];
+    const { ch } = range(box);
+    const key = ['r', 'g', 'b', 'a'][ch];
+    box.sort((x, y) => x[key] - y[key]);
+    let total = 0;
+    for (const c of box) total += c.n;
+    let acc = 0, cut = 1;
+    for (let i = 0; i < box.length - 1; i++) { acc += box[i].n; if (acc >= total / 2) { cut = i + 1; break; } }
+    boxes.splice(bi, 1, box.slice(0, cut), box.slice(cut));
+  }
+  const palette = [];
+  if (hasTrans) palette.push([0, 0, 0, 0]);
+  for (const box of boxes) {
+    let r = 0, g = 0, b = 0, a = 0, n = 0;
+    for (const c of box) { r += c.r * c.n; g += c.g * c.n; b += c.b * c.n; a += c.a * c.n; n += c.n; }
+    palette.push([Math.round(r / n), Math.round(g / n), Math.round(b / n), Math.round(a / n)]);
+  }
+  const lookup = new Map();
+  const nearest = (p) => {
+    let hit = lookup.get(p);
+    if (hit !== undefined) return hit;
+    const r = p & 255, g = (p >>> 8) & 255, b = (p >>> 16) & 255, a = p >>> 24;
+    let bi = 0, bd = Infinity;
+    for (let i = 0; i < palette.length; i++) {
+      const q = palette[i];
+      const d = (q[0] - r) ** 2 + (q[1] - g) ** 2 + (q[2] - b) ** 2 + 2 * (q[3] - a) ** 2;
+      if (d < bd) { bd = d; bi = i; }
+    }
+    lookup.set(p, bi);
+    return bi;
+  };
+  if (hasTrans) lookup.set(0, 0);
+  const indexed = frames.map((f) => {
+    const u32 = new Uint32Array(f.buffer, f.byteOffset, f.byteLength >> 2);
+    const out = new Uint8Array(u32.length);
+    for (let i = 0; i < u32.length; i++) {
+      let p = u32[i];
+      if ((p >>> 24) < 8) p = 0;
+      out[i] = nearest(p);
+    }
+    return out;
+  });
+  return { palette, indexed };
+}
+
+// 前フレームと違う部分の矩形(なければnull)
+function diffRect(a, b, w, h, bpp) {
+  let minX = w, minY = h, maxX = -1, maxY = -1;
+  for (let y = 0; y < h; y++) {
+    const ro = y * w * bpp;
+    for (let x = 0; x < w; x++) {
+      const o = ro + x * bpp;
+      let same = true;
+      for (let k = 0; k < bpp; k++) if (a[o + k] !== b[o + k]) { same = false; break; }
+      if (!same) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+  if (maxX < 0) return null;
+  return { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 };
+}
+function regionRaw(img, w, rect, bpp) {
+  const out = new Uint8Array(rect.h * (1 + rect.w * bpp));
+  let p = 0;
+  for (let y = 0; y < rect.h; y++) {
+    out[p++] = 0; // filter: None
+    const src = ((rect.y + y) * w + rect.x) * bpp;
+    out.set(img.subarray(src, src + rect.w * bpp), p);
+    p += rect.w * bpp;
+  }
+  return out;
+}
+
+// frames: Uint8Array(RGBA, w*h*4) の配列 / delays: ms配列 / loops: 再生回数 / colors: 0=フルカラー
+async function buildAPNG({ w, h, frames, delays, loops, colors }) {
+  let imgs, bpp, palette = null;
+  if (colors > 0) {
+    const q = quantizeFrames(frames, colors);
+    imgs = q.indexed;
+    palette = q.palette;
+    bpp = 1;
+  } else {
+    imgs = frames;
+    bpp = 4;
+  }
+  const u32be = (...vals) => {
+    const d = new Uint8Array(vals.length * 4);
+    const dv = new DataView(d.buffer);
+    vals.forEach((v, i) => dv.setUint32(i * 4, v));
+    return d;
+  };
+  const ihdr = new Uint8Array(13);
+  {
+    const dv = new DataView(ihdr.buffer);
+    dv.setUint32(0, w);
+    dv.setUint32(4, h);
+    ihdr[8] = 8;                       // bit depth
+    ihdr[9] = palette ? 3 : 6;         // color type: palette / RGBA
+  }
+  const parts = [new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10])];
+  parts.push(pngChunk('IHDR', ihdr));
+  parts.push(pngChunk('acTL', u32be(frames.length, loops)));
+  if (palette) {
+    const plte = new Uint8Array(palette.length * 3);
+    const trns = new Uint8Array(palette.length);
+    palette.forEach((c, i) => { plte.set(c.slice(0, 3), i * 3); trns[i] = c[3]; });
+    parts.push(pngChunk('PLTE', plte));
+    parts.push(pngChunk('tRNS', trns));
+  }
+  let seq = 0;
+  for (let i = 0; i < imgs.length; i++) {
+    const rect = i === 0
+      ? { x: 0, y: 0, w, h }
+      : (diffRect(imgs[i - 1], imgs[i], w, h, bpp) || { x: 0, y: 0, w: 1, h: 1 });
+    const fctl = new Uint8Array(26);
+    {
+      const dv = new DataView(fctl.buffer);
+      dv.setUint32(0, seq++);
+      dv.setUint32(4, rect.w);
+      dv.setUint32(8, rect.h);
+      dv.setUint32(12, rect.x);
+      dv.setUint32(16, rect.y);
+      dv.setUint16(20, Math.max(1, Math.round(delays[i])));  // delay_num
+      dv.setUint16(22, 1000);                                 // delay_den
+      fctl[24] = 0; // dispose: none
+      fctl[25] = 0; // blend: source
+    }
+    parts.push(pngChunk('fcTL', fctl));
+    const comp = await deflateBytes(regionRaw(imgs[i], w, rect, bpp));
+    if (i === 0) {
+      parts.push(pngChunk('IDAT', comp));
+    } else {
+      const d = new Uint8Array(4 + comp.length);
+      new DataView(d.buffer).setUint32(0, seq++);
+      d.set(comp, 4);
+      parts.push(pngChunk('fdAT', d));
+    }
+  }
+  parts.push(pngChunk('IEND', new Uint8Array(0)));
+  return concatBytes(parts);
+}
+
+// 300KB以下になるまで色数を落として再エンコード
+async function encodeAutoAPNG(opt) {
+  const maxBytes = opt.maxBytes || 300 * 1024;
+  let best = null;
+  for (const colors of [0, 256, 128, 64]) {
+    const bytes = await buildAPNG({ ...opt, colors });
+    if (bytes.length <= maxBytes) return { bytes, colors, over: false };
+    if (!best || bytes.length < best.bytes.length) best = { bytes, colors };
+  }
+  return { ...best, over: true };
+}
+
+// 無圧縮(STORE)のZIPを生成。files: [{name, data:Uint8Array}]
+function makeZip(files) {
+  const enc = new TextEncoder();
+  const now = new Date();
+  const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+  const dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+  const chunks = [], central = [];
+  let off = 0;
+  for (const f of files) {
+    const name = enc.encode(f.name);
+    const crc = crc32(f.data, 0, f.data.length);
+    const lh = new Uint8Array(30 + name.length);
+    const lv = new DataView(lh.buffer);
+    lv.setUint32(0, 0x04034b50, true);
+    lv.setUint16(4, 20, true);
+    lv.setUint16(6, 0x0800, true); // UTF-8
+    lv.setUint16(10, dosTime, true);
+    lv.setUint16(12, dosDate, true);
+    lv.setUint32(14, crc, true);
+    lv.setUint32(18, f.data.length, true);
+    lv.setUint32(22, f.data.length, true);
+    lv.setUint16(26, name.length, true);
+    lh.set(name, 30);
+    chunks.push(lh, f.data);
+    const ch = new Uint8Array(46 + name.length);
+    const cv = new DataView(ch.buffer);
+    cv.setUint32(0, 0x02014b50, true);
+    cv.setUint16(4, 20, true);
+    cv.setUint16(6, 20, true);
+    cv.setUint16(8, 0x0800, true);
+    cv.setUint16(12, dosTime, true);
+    cv.setUint16(14, dosDate, true);
+    cv.setUint32(16, crc, true);
+    cv.setUint32(20, f.data.length, true);
+    cv.setUint32(24, f.data.length, true);
+    cv.setUint16(28, name.length, true);
+    cv.setUint32(42, off, true);
+    ch.set(name, 46);
+    central.push(ch);
+    off += lh.length + f.data.length;
+  }
+  const cdSize = central.reduce((s, c) => s + c.length, 0);
+  const eocd = new Uint8Array(22);
+  const ev = new DataView(eocd.buffer);
+  ev.setUint32(0, 0x06054b50, true);
+  ev.setUint16(8, files.length, true);
+  ev.setUint16(10, files.length, true);
+  ev.setUint32(12, cdSize, true);
+  ev.setUint32(16, off, true);
+  return concatBytes([...chunks, ...central, eocd]);
+}
+/*==CORE-END==*/
+
+/* ==================================================================
+ * 動きプリセット
+ * ================================================================== */
+const TAU = Math.PI * 2;
+const backOut = (x) => 1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2);
+const PRESETS = {
+  pyon:  { label: 'ぴょんぴょん（はねる）', pivot: 'bottom', fn: (t, A) => {
+            const p = (t * 2) % 1, hh = Math.abs(Math.sin(Math.PI * p));
+            const g = Math.max(0, 1 - hh * 3.5);
+            return { y: -0.16 * A * hh, sx: 1 + 0.10 * A * g, sy: 1 - 0.12 * A * g }; } },
+  puru:  { label: 'ぷるぷる（ふるえる）', pivot: 'bottom', fn: (t, A) =>
+            ({ x: 0.016 * A * Math.sin(6 * TAU * t), rot: 0.035 * A * Math.sin(6 * TAU * t + 2) }) },
+  yura:  { label: 'ゆらゆら（ゆれる）', pivot: 'bottom', fn: (t, A) =>
+            ({ rot: 0.15 * A * Math.sin(TAU * t) }) },
+  poyo:  { label: 'ぽよぽよ（のびちぢみ）', pivot: 'bottom', fn: (t, A) => {
+            const wv = Math.sin(2 * TAU * t);
+            return { sx: 1 + 0.08 * A * wv, sy: 1 - 0.08 * A * wv }; } },
+  fuwa:  { label: 'ふわふわ（うかぶ）', pivot: 'center', fn: (t, A) =>
+            ({ y: -0.05 * A * Math.sin(TAU * t), rot: 0.04 * A * Math.sin(TAU * t + 1.2) }) },
+  doki:  { label: 'どきどき（こどう）', pivot: 'center', fn: (t, A) => {
+            const p = t % 1;
+            let s = 0;
+            if (p < 0.14) s = Math.sin(Math.PI * p / 0.14);
+            else if (p < 0.30) s = 0.65 * Math.max(0, Math.sin(Math.PI * (p - 0.16) / 0.14));
+            return { sx: 1 + 0.11 * A * s, sy: 1 + 0.11 * A * s }; } },
+  kuru:  { label: 'くるっと（ひとまわり）', pivot: 'center', fn: (t) => {
+            const e = Math.min(1, t / 0.7);
+            const c = e < 0.5 ? 4 * e * e * e : 1 - Math.pow(-2 * e + 2, 3) / 2;
+            return { rot: TAU * c }; } },
+  baan:  { label: 'ばーん（とうじょう）', pivot: 'center', fn: (t) => {
+            const e = Math.min(1, t / 0.45);
+            const s = 0.15 + 0.85 * backOut(e);
+            return { sx: s, sy: s }; } },
+  shu:   { label: 'しゅっ（スライドイン）', pivot: 'bottom', fn: (t) => {
+            const e = Math.min(1, t / 0.45);
+            return { x: -1.2 * (1 - backOut(e)) }; } },
+  pata:  { label: 'ぱたぱた（よこゆれ）', pivot: 'bottom', fn: (t, A) =>
+            ({ x: 0.05 * A * Math.sin(TAU * t), rot: 0.09 * A * Math.sin(TAU * t + Math.PI / 2) }) },
+};
+const PRESET_KEYS = Object.keys(PRESETS);
+
+// 1フレーム描画。spriteは余白を切り詰めたcanvas
+function drawSprite(ctx, W, H, sprite, presetKey, t, A) {
+  const pr = PRESETS[presetKey] || PRESETS.pyon;
+  const tr = pr.fn(t, A) || {};
+  const fit = 0.76;
+  const s0 = Math.min(W * fit / sprite.width, H * fit / sprite.height);
+  const w = sprite.width * s0, h = sprite.height * s0;
+  const u = Math.min(W, H);
+  ctx.clearRect(0, 0, W, H);
+  ctx.save();
+  ctx.globalAlpha = tr.a == null ? 1 : tr.a;
+  const dx = (tr.x || 0) * u, dy = (tr.y || 0) * u;
+  if (pr.pivot === 'center') {
+    ctx.translate(W / 2 + dx, H / 2 + dy);
+  } else {
+    ctx.translate(W / 2 + dx, H - H * 0.05 + dy); // 足元基準
+  }
+  ctx.rotate(tr.rot || 0);
+  ctx.scale(tr.sx == null ? 1 : tr.sx, tr.sy == null ? 1 : tr.sy);
+  if (pr.pivot === 'center') ctx.drawImage(sprite, -w / 2, -h / 2, w, h);
+  else ctx.drawImage(sprite, -w / 2, -h, w, h);
+  ctx.restore();
+}
+
+/* ==================================================================
+ * 画像ユーティリティ
+ * ================================================================== */
+function loadImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('画像を読み込めません')); };
+    img.src = url;
+  });
+}
+function imageToCanvas(img, maxSide) {
+  const sc = Math.min(1, maxSide / Math.max(img.width, img.height));
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(img.width * sc));
+  c.height = Math.max(1, Math.round(img.height * sc));
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+  return c;
+}
+// 外周とつながった白っぽい部分を透過にする(塗りつぶし)
+function removeWhiteBg(canvas, tol) {
+  const w = canvas.width, h = canvas.height;
+  const ctx = canvas.getContext('2d');
+  const id = ctx.getImageData(0, 0, w, h);
+  const d = id.data;
+  const T = tol * 2;
+  const visited = new Uint8Array(w * h);
+  const stack = [];
+  const push = (i) => {
+    if (visited[i]) return;
+    const o = i * 4;
+    if (d[o + 3] > 0 && d[o] > 255 - T && d[o + 1] > 255 - T && d[o + 2] > 255 - T) {
+      visited[i] = 1;
+      stack.push(i);
+    }
+  };
+  for (let x = 0; x < w; x++) { push(x); push((h - 1) * w + x); }
+  for (let y = 0; y < h; y++) { push(y * w); push(y * w + w - 1); }
+  while (stack.length) {
+    const i = stack.pop();
+    d[i * 4 + 3] = 0;
+    const x = i % w, y = (i / w) | 0;
+    if (x > 0) push(i - 1);
+    if (x < w - 1) push(i + 1);
+    if (y > 0) push(i - w);
+    if (y < h - 1) push(i + w);
+  }
+  ctx.putImageData(id, 0, 0);
+}
+function alphaBBox(ctx, w, h) {
+  const d = ctx.getImageData(0, 0, w, h).data;
+  let minX = w, minY = h, maxX = -1, maxY = -1;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (d[(y * w + x) * 4 + 3] > 10) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+  if (maxX < 0) return null;
+  return { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 };
+}
+function cropCanvas(src, sx, sy, sw, sh) {
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, sw);
+  c.height = Math.max(1, sh);
+  c.getContext('2d').drawImage(src, sx, sy, sw, sh, 0, 0, sw, sh);
+  return c;
+}
+function canvasToPngBytes(canvas) {
+  return new Promise((resolve) => canvas.toBlob(async (b) => resolve(new Uint8Array(await b.arrayBuffer())), 'image/png'));
+}
+function downloadBytes(bytes, name) {
+  const url = URL.createObjectURL(new Blob([bytes], { type: name.endsWith('.zip') ? 'application/zip' : 'image/png' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+const $ = (id) => document.getElementById(id);
+const sleep0 = () => new Promise((r) => setTimeout(r));
+
+/* ==================================================================
+ * モードA: シートから自動アニメ
+ * ================================================================== */
+const SIZE = { stamp: { w: 320, h: 270 }, emoji: { w: 180, h: 180 }, main: { w: 240, h: 240 } };
+let sheetA = null;   // 透過処理済みのシートcanvas
+let cells = [];      // {sprite, preset, use, empty, el, cv, ctx, useCk, mainRd, resEl, result}
+let mainIndex = 0;
+let resultsStale = true;
+
+function kindA() { return document.querySelector('input[name=kind]:checked').value; }
+function intensityA() { return $('intensity').value / 100; }
+function durMsA() { return +$('durSel').value; }
+function loopsFor(durMs, sel) {
+  const v = sel.value;
+  if (v !== 'auto') return +v;
+  return Math.min(4, Math.max(1, Math.floor(4000 / durMs)));
+}
+function updateTotalTime() {
+  const loops = loopsFor(durMsA(), $('loopSel'));
+  const total = durMsA() * loops / 1000;
+  $('totalTime').textContent = `→ ${loops}ループ・合計${total}秒${total > 4 ? '（4秒を超えています！）' : ''}`;
+}
+
+const GRID_PRESETS = {
+  stamp: [[8, 4, 2], [16, 4, 4], [24, 4, 6]],
+  emoji: [[8, 4, 2], [16, 4, 4], [24, 4, 6], [32, 4, 8], [40, 5, 8]],
+};
+function renderGridPresets() {
+  const wrap = $('gridPresets');
+  wrap.innerHTML = '';
+  for (const [n, c, r] of GRID_PRESETS[kindA()]) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = `${n}個 (${c}×${r})`;
+    b.classList.toggle('on', +$('cols').value === c && +$('rows').value === r);
+    b.onclick = () => { $('cols').value = c; $('rows').value = r; renderGridPresets(); resliceA(); };
+    wrap.appendChild(b);
+  }
+}
+
+function fillPresetSelect(sel, value) {
+  sel.innerHTML = '';
+  for (const k of PRESET_KEYS) {
+    const o = document.createElement('option');
+    o.value = k;
+    o.textContent = PRESETS[k].label;
+    sel.appendChild(o);
+  }
+  sel.value = value || 'pyon';
+}
+
+async function onSheetA(file) {
+  try {
+    const img = await loadImageFile(file);
+    sheetA = imageToCanvas(img, 2600);
+    if ($('bgRemove').checked) removeWhiteBg(sheetA, +$('bgTol').value);
+    $('dropA').innerHTML = `読み込みました（${img.width}×${img.height}px）。別の画像にするにはもう一度ドロップ/クリック。`;
+    const mini = document.createElement('img');
+    mini.className = 'mini';
+    mini.src = sheetA.toDataURL();
+    $('dropA').appendChild(mini);
+    $('resliceBtn').disabled = false;
+    sheetA._file = file;
+    buildCells();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+async function resliceA() {
+  if (!sheetA || !sheetA._file) return;
+  await onSheetA(sheetA._file); // 透過設定を反映して読み込み直す
+}
+
+function buildCells() {
+  if (!sheetA) return;
+  const cols = Math.max(1, Math.min(10, +$('cols').value || 4));
+  const rows = Math.max(1, Math.min(10, +$('rows').value || 4));
+  const kind = kindA();
+  const ratio = SIZE[kind].h / SIZE[kind].w;
+  cells = [];
+  $('cellGrid').innerHTML = '';
+  $('cellsHint').hidden = true;
+  const cw = sheetA.width / cols, ch = sheetA.height / rows;
+  let no = 0;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      no++;
+      const cell = cropCanvas(sheetA, Math.round(c * cw), Math.round(r * ch), Math.round(cw), Math.round(ch));
+      const bbox = alphaBBox(cell.getContext('2d'), cell.width, cell.height);
+      const empty = !bbox || bbox.w < 4 || bbox.h < 4;
+      const sprite = empty ? cell : cropCanvas(cell, bbox.x, bbox.y, bbox.w, bbox.h);
+
+      const el = document.createElement('div');
+      el.className = 'cell' + (empty ? ' off' : '');
+      const cv = document.createElement('canvas');
+      cv.width = 128;
+      cv.height = Math.round(128 * ratio);
+      const sel = document.createElement('select');
+      fillPresetSelect(sel, 'pyon');
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      const useCk = document.createElement('input');
+      useCk.type = 'checkbox';
+      useCk.checked = !empty;
+      useCk.disabled = empty;
+      const useLb = document.createElement('label');
+      useLb.append(useCk, ' 使う');
+      const noSpan = document.createElement('span');
+      noSpan.className = 'no';
+      noSpan.textContent = String(no).padStart(2, '0');
+      meta.append(noSpan, useLb);
+      let mainRd = null;
+      if (kind === 'stamp') {
+        mainRd = document.createElement('input');
+        mainRd.type = 'radio';
+        mainRd.name = 'mainpick';
+        mainRd.disabled = empty;
+        const mainLb = document.createElement('label');
+        mainLb.append(mainRd, ' メイン');
+        meta.append(mainLb);
+      }
+      const resEl = document.createElement('div');
+      resEl.className = 'res';
+      el.append(cv, sel, meta, resEl);
+      $('cellGrid').appendChild(el);
+
+      const entry = { sprite, preset: sel.value, use: !empty, empty, el, cv, ctx: cv.getContext('2d'), useCk, mainRd, resEl, result: null };
+      sel.onchange = () => { entry.preset = sel.value; entry.result = null; resEl.innerHTML = ''; markStale(); };
+      useCk.onchange = () => { entry.use = useCk.checked; el.classList.toggle('off', !entry.use); markStale(); };
+      if (mainRd) mainRd.onchange = () => { mainIndex = cells.indexOf(entry); markStale(); };
+      cells.push(entry);
+    }
+  }
+  const firstUsable = cells.findIndex((c) => !c.empty);
+  mainIndex = Math.max(0, firstUsable);
+  if (kindA() === 'stamp' && firstUsable >= 0) cells[firstUsable].mainRd.checked = true;
+  $('genBtn').disabled = firstUsable < 0;
+  markStale();
+}
+function markStale() {
+  resultsStale = true;
+  $('zipBtn').disabled = true;
+}
+
+// ライブプレビュー
+(function previewLoop() {
+  requestAnimationFrame(previewLoop);
+  if (!cells.length) return;
+  const dur = durMsA();
+  const t = (performance.now() % dur) / dur;
+  const A = intensityA();
+  for (const c of cells) {
+    if (c.empty) continue;
+    drawSprite(c.ctx, c.cv.width, c.cv.height, c.sprite, c.preset, t, A);
+  }
+})();
+
+function renderFrames(sprite, presetKey, W, H, N, A) {
+  const c = document.createElement('canvas');
+  c.width = W;
+  c.height = H;
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  const frames = [];
+  for (let i = 0; i < N; i++) {
+    drawSprite(ctx, W, H, sprite, presetKey, i / N, A);
+    frames.push(new Uint8Array(ctx.getImageData(0, 0, W, H).data.buffer));
+  }
+  return frames;
+}
+
+let mainResult = null; // {bytes} 240×240 APNG (スタンプ用)
+let tabResult = null;  // {bytes} 96×74 静止PNG
+
+async function makeTabPng(sprite) {
+  const c = document.createElement('canvas');
+  c.width = 96;
+  c.height = 74;
+  drawSprite(c.getContext('2d'), 96, 74, sprite, 'pyon', 0, 0); // 動きなしの1コマ
+  return canvasToPngBytes(c);
+}
+
+$('genBtn').onclick = async () => {
+  const active = cells.filter((c) => c.use && !c.empty);
+  if (!active.length) return;
+  const kind = kindA();
+  const { w: W, h: H } = SIZE[kind];
+  let N = Math.max(5, Math.min(20, +$('frameCount').value || 10));
+  $('frameCount').value = N;
+  const durMs = durMsA();
+  const loops = loopsFor(durMs, $('loopSel'));
+  const delays = new Array(N).fill(durMs / N);
+  const A = intensityA();
+  $('genBtn').disabled = true;
+  $('barWrap').style.display = 'block';
+  const totalJobs = active.length + (kind === 'stamp' ? 1 : 0);
+  let done = 0;
+  try {
+    for (const cell of active) {
+      $('genStatus').textContent = `生成中… ${done + 1} / ${totalJobs}`;
+      await sleep0();
+      const frames = renderFrames(cell.sprite, cell.preset, W, H, N, A);
+      const res = await encodeAutoAPNG({ w: W, h: H, frames, delays, loops });
+      cell.result = res;
+      const kb = (res.bytes.length / 1024).toFixed(0);
+      cell.resEl.innerHTML = '';
+      const im = document.createElement('img');
+      im.src = URL.createObjectURL(new Blob([res.bytes], { type: 'image/png' }));
+      const bg = document.createElement('span');
+      bg.className = 'badge' + (res.over ? ' ng' : '');
+      bg.textContent = res.over ? `${kb}KB 超過!` : `${kb}KB`;
+      cell.resEl.append(im, bg);
+      done++;
+      $('bar').style.width = `${(done / totalJobs) * 100}%`;
+    }
+    const mainCell = (kind === 'stamp' && cells[mainIndex] && cells[mainIndex].use) ? cells[mainIndex] : active[0];
+    if (kind === 'stamp') {
+      $('genStatus').textContent = `メイン画像を生成中…`;
+      await sleep0();
+      const mf = renderFrames(mainCell.sprite, mainCell.preset, 240, 240, N, A);
+      mainResult = await encodeAutoAPNG({ w: 240, h: 240, frames: mf, delays, loops });
+      done++;
+      $('bar').style.width = '100%';
+    } else {
+      mainResult = null;
+    }
+    tabResult = await makeTabPng(mainCell.sprite);
+    resultsStale = false;
+    $('zipBtn').disabled = false;
+    const overs = active.filter((c) => c.result && c.result.over).length;
+    $('genStatus').textContent = overs
+      ? `できました（${overs}コマが300KBを超えています。フレーム数や長さを減らして再生成してください）`
+      : 'できました！プレビューを確認してZIPをダウンロードしてください。';
+  } catch (e) {
+    $('genStatus').textContent = 'エラー: ' + e.message;
+  } finally {
+    $('genBtn').disabled = false;
+  }
+};
+
+$('zipBtn').onclick = () => {
+  if (resultsStale) return;
+  const kind = kindA();
+  const active = cells.filter((c) => c.use && !c.empty && c.result);
+  const files = [];
+  if (kind === 'stamp') {
+    if (mainResult) files.push({ name: 'main.png', data: mainResult.bytes });
+    if (tabResult) files.push({ name: 'tab.png', data: tabResult });
+    active.forEach((c, i) => files.push({ name: `${String(i + 1).padStart(2, '0')}.png`, data: c.result.bytes }));
+  } else {
+    if (tabResult) files.push({ name: 'tab.png', data: tabResult });
+    active.forEach((c, i) => files.push({ name: `${String(i + 1).padStart(3, '0')}.png`, data: c.result.bytes }));
+  }
+  downloadBytes(makeZip(files), kind === 'stamp' ? 'animation_stickers.zip' : 'animation_emoji.zip');
+};
+
+// 入力まわりの配線
+$('dropA').onclick = () => $('fileA').click();
+$('fileA').onchange = (e) => e.target.files[0] && onSheetA(e.target.files[0]);
+for (const [dropId, handler] of [['dropA', onSheetA], ['dropB', onSheetB]]) {
+  const el = $(dropId);
+  el.ondragover = (e) => { e.preventDefault(); el.classList.add('over'); };
+  el.ondragleave = () => el.classList.remove('over');
+  el.ondrop = (e) => {
+    e.preventDefault();
+    el.classList.remove('over');
+    const f = e.dataTransfer.files[0];
+    if (f) handler(f);
+  };
+}
+$('resliceBtn').onclick = resliceA;
+$('cols').onchange = $('rows').onchange = () => { renderGridPresets(); buildCells(); };
+document.querySelectorAll('input[name=kind]').forEach((r) => {
+  r.onchange = () => { renderGridPresets(); buildCells(); };
+});
+$('durSel').onchange = $('loopSel').onchange = () => { updateTotalTime(); markStale(); };
+$('frameCount').onchange = markStale;
+$('intensity').oninput = () => { $('intensityVal').textContent = $('intensity').value + '%'; markStale(); };
+fillPresetSelect($('bulkPreset'), 'pyon');
+$('bulkApply').onclick = () => {
+  for (const c of cells) {
+    c.preset = $('bulkPreset').value;
+    c.el.querySelector('select').value = c.preset;
+    c.result = null;
+    c.resEl.innerHTML = '';
+  }
+  markStale();
+};
+$('bulkRandom').onclick = () => {
+  for (const c of cells) {
+    c.preset = PRESET_KEYS[Math.floor(Math.random() * PRESET_KEYS.length)];
+    c.el.querySelector('select').value = c.preset;
+    c.result = null;
+    c.resEl.innerHTML = '';
+  }
+  markStale();
+};
+renderGridPresets();
+updateTotalTime();
+
+/* ==================================================================
+ * モードB: スプライトシート変換
+ * ================================================================== */
+let framesB = [];   // canvasの配列(位置合わせ済み)
+let resultB = null;
+
+function makePrompt() {
+  const c = +$('colsB').value || 4, r = +$('rowsB').value || 2;
+  const n = Math.min(+$('framesB').value || c * r, c * r);
+  $('promptArea').value =
+`以下の仕様で、アニメーションのコマを並べた1枚のスプライトシート画像を作ってください。
+
+【キャラクター】
+（ここにキャラクターの説明を書く。例：白いふわふわのうさぎ。ピンクのほっぺ。）
+
+【動き】
+（ここに動きを書く。例：両手を上げてぴょんぴょん跳ねて喜ぶ。）
+
+【シートの仕様】
+- ${c}列×${r}行の合計${n}コマを、等間隔のきれいなグリッドに並べる
+- すべてのコマでキャラクターの大きさと位置をぴったりそろえる
+- 左上から右へ順番に、パラパラ漫画のように少しずつ動かす
+- 最後のコマから最初のコマへ自然につながるループの動きにする
+- 背景は真っ白（#FFFFFF）。枠線・区切り線・番号・文字は描かない`;
+}
+$('promptRemake').onclick = makePrompt;
+$('promptCopy').onclick = async () => {
+  try {
+    await navigator.clipboard.writeText($('promptArea').value);
+    $('promptCopy').textContent = 'コピーしました！';
+  } catch {
+    $('promptArea').select();
+    document.execCommand('copy');
+    $('promptCopy').textContent = 'コピーしました！';
+  }
+  setTimeout(() => ($('promptCopy').textContent = 'プロンプトをコピー'), 1500);
+};
+$('colsB').onchange = $('rowsB').onchange = () => {
+  $('framesB').value = (+$('colsB').value || 4) * (+$('rowsB').value || 2);
+  makePrompt();
+};
+makePrompt();
+
+async function onSheetB(file) {
+  try {
+    const img = await loadImageFile(file);
+    const sheet = imageToCanvas(img, 2600);
+    if ($('bgRemoveB').checked) removeWhiteBg(sheet, +$('bgTolB').value);
+    const cols = Math.max(1, Math.min(10, +$('colsB').value || 4));
+    const rows = Math.max(1, Math.min(10, +$('rowsB').value || 2));
+    const count = Math.max(2, Math.min(20, Math.min(+$('framesB').value || cols * rows, cols * rows)));
+    const cw = sheet.width / cols, ch = sheet.height / rows;
+    const raw = [];
+    for (let i = 0; i < count; i++) {
+      const c = i % cols, r = Math.floor(i / cols);
+      raw.push(cropCanvas(sheet, Math.round(c * cw), Math.round(r * ch), Math.round(cw), Math.round(ch)));
+    }
+    // 全コマ共通の外接矩形で切り詰める(コマごとに切ると位置がガタつくため)
+    let ub = null;
+    for (const f of raw) {
+      const b = alphaBBox(f.getContext('2d'), f.width, f.height);
+      if (!b) continue;
+      if (!ub) ub = { ...b };
+      else {
+        const x2 = Math.max(ub.x + ub.w, b.x + b.w), y2 = Math.max(ub.y + ub.h, b.y + b.h);
+        ub.x = Math.min(ub.x, b.x);
+        ub.y = Math.min(ub.y, b.y);
+        ub.w = x2 - ub.x;
+        ub.h = y2 - ub.y;
+      }
+    }
+    if (!ub) throw new Error('絵が見つかりません。白背景の透過設定を確認してください');
+    framesB = raw.map((f) => cropCanvas(f, ub.x, ub.y, ub.w, ub.h));
+    $('dropB').textContent = `読み込みました（${count}コマ）。別の画像にするにはもう一度ドロップ/クリック。`;
+    $('convBtn').disabled = false;
+    $('statusB').textContent = '左のプレビューで動きを確認して「APNGに変換」を押してください。';
+    $('playB').hidden = false;
+    resultB = null;
+    $('dlBtn').disabled = true;
+    $('outB').hidden = true;
+  } catch (e) {
+    alert(e.message);
+  }
+}
+$('dropB').onclick = () => $('fileB').click();
+$('fileB').onchange = (e) => e.target.files[0] && onSheetB(e.target.files[0]);
+
+(function previewLoopB() {
+  requestAnimationFrame(previewLoopB);
+  if (!framesB.length || $('modeB').hidden) return;
+  const dur = +$('durSelB').value;
+  const i = Math.floor(((performance.now() % dur) / dur) * framesB.length);
+  const cv = $('playB');
+  const sz = SIZE[document.querySelector('input[name=sizeB]:checked').value];
+  if (cv.width !== sz.w) { cv.width = sz.w; cv.height = sz.h; }
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  drawFrameB(ctx, cv.width, cv.height, framesB[i]);
+})();
+function drawFrameB(ctx, W, H, frame) {
+  const s = Math.min(W * 0.92 / frame.width, H * 0.92 / frame.height);
+  const w = frame.width * s, h = frame.height * s;
+  ctx.drawImage(frame, (W - w) / 2, (H - h) / 2, w, h);
+}
+
+$('convBtn').onclick = async () => {
+  if (!framesB.length) return;
+  const sz = SIZE[document.querySelector('input[name=sizeB]:checked').value];
+  const durMs = +$('durSelB').value;
+  const loops = loopsFor(durMs, $('loopSelB'));
+  const N = framesB.length;
+  const delays = new Array(N).fill(durMs / N);
+  $('convBtn').disabled = true;
+  $('statusB').textContent = '変換中…';
+  await sleep0();
+  try {
+    const c = document.createElement('canvas');
+    c.width = sz.w;
+    c.height = sz.h;
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    const frames = framesB.map((f) => {
+      ctx.clearRect(0, 0, sz.w, sz.h);
+      drawFrameB(ctx, sz.w, sz.h, f);
+      return new Uint8Array(ctx.getImageData(0, 0, sz.w, sz.h).data.buffer);
+    });
+    resultB = await encodeAutoAPNG({ w: sz.w, h: sz.h, frames, delays, loops });
+    const kb = (resultB.bytes.length / 1024).toFixed(0);
+    $('statusB').textContent = resultB.over
+      ? `${kb}KB — 300KBを超えています。コマ数を減らすかシートを単純な絵にしてください`
+      : `${kb}KB — OK！（${N}コマ・${loops}ループ）`;
+    $('outB').src = URL.createObjectURL(new Blob([resultB.bytes], { type: 'image/png' }));
+    $('outB').hidden = false;
+    $('dlBtn').disabled = false;
+  } catch (e) {
+    $('statusB').textContent = 'エラー: ' + e.message;
+  } finally {
+    $('convBtn').disabled = false;
+  }
+};
+$('dlBtn').onclick = () => resultB && downloadBytes(resultB.bytes, 'animation.png');
+
+/* ==================================================================
+ * タブ切り替え
+ * ================================================================== */
+$('tabA').onclick = () => switchTab('A');
+$('tabB').onclick = () => switchTab('B');
+function switchTab(m) {
+  $('modeA').hidden = m !== 'A';
+  $('modeB').hidden = m !== 'B';
+  $('tabA').classList.toggle('active', m === 'A');
+  $('tabB').classList.toggle('active', m === 'B');
+}
+</script>
+</body>
+</html>
