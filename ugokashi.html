@@ -16,6 +16,7 @@
     --line: #d4e6c8;
     --line-strong: #a9c79a;
     --chip-bg: #e6f1de;
+    --pvbg: repeating-conic-gradient(#ececec 0% 25%, #fff 0% 50%) 0 0/14px 14px;
   }
   * { box-sizing: border-box; }
   body {
@@ -102,14 +103,31 @@
   .cell.off { opacity: 0.45; }
   .cell canvas {
     width: 100%; border-radius: 8px; align-self: center;
-    background: repeating-conic-gradient(#ececec 0% 25%, #fff 0% 50%) 0 0/14px 14px;
+    background: var(--pvbg);
   }
   .cell select { width: 100%; min-height: 34px; font-size: 12.5px; padding: 4px 6px; }
   .cell .meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #5a7250; flex-wrap: wrap; }
-  .cell .meta .no { font-family: 'Crimson Pro', serif; font-size: 17px; font-weight: 600; color: #5a7250; }
+  .cell .meta .no {
+    font-family: 'Crimson Pro', serif; font-size: 17px; font-weight: 600; color: #5a7250;
+    cursor: grab; padding: 0 4px; border-radius: 6px; border: 1px dashed transparent;
+  }
+  .cell .meta .no:hover { border-color: var(--line-strong); background: var(--chip-bg); }
+  .cell.dragover { outline: 2px dashed var(--green); outline-offset: 2px; }
+  .cell .mv {
+    width: 24px; height: 24px; border-radius: 999px; border: 1px solid var(--line-strong);
+    background: #fff; color: #5a7250; font-size: 11px; line-height: 1; cursor: pointer; padding: 0;
+  }
+  .cell .mv:hover { background: var(--chip-bg); }
+  .cell .sizerow { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #5a7250; }
+  .cell .sizerow input[type=range] { flex: 1; min-width: 0; }
   .cell .res { display: flex; align-items: center; gap: 8px; min-height: 20px; }
   .cell .res img { width: 44px; height: 44px; object-fit: contain;
-    background: repeating-conic-gradient(#ececec 0% 25%, #fff 0% 50%) 0 0/10px 10px; border-radius: 6px; }
+    background: var(--pvbg); border-radius: 6px; }
+  button.swatch {
+    width: 24px; height: 24px; border-radius: 999px; border: 1px solid #b9cfb0;
+    cursor: pointer; padding: 0; flex: none;
+  }
+  button.swatch.on { outline: 2px solid var(--green); outline-offset: 2px; }
   .badge {
     display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 11px; font-weight: 700;
     background: var(--chip-bg); border: 1px solid var(--line-strong); color: #2d4a25;
@@ -125,9 +143,9 @@
   footer a { color: #5a7250; }
   .out-preview { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
   .out-preview img { max-width: 200px; border-radius: 10px;
-    background: repeating-conic-gradient(#ececec 0% 25%, #fff 0% 50%) 0 0/16px 16px; }
+    background: var(--pvbg); }
   #playB { width: 180px; border-radius: 10px;
-    background: repeating-conic-gradient(#ececec 0% 25%, #fff 0% 50%) 0 0/16px 16px; }
+    background: var(--pvbg); }
   @media (max-width: 520px) {
     h1 { font-size: 24px; }
     .card { padding: 14px; }
@@ -208,6 +226,12 @@
 
   <div class="card">
     <h2><span class="step-num">4</span>プレビューして書き出す</h2>
+    <div class="row">
+      <span style="font-size:14px;font-weight:700">確認用の背景色:</span>
+      <span class="seg" id="bgPickA" style="align-items:center"></span>
+      <button class="act" id="unifyBtn" type="button">サイズを揃える</button>
+    </div>
+    <p class="note">並べ替えは番号をつかんでドラッグ、または ◀ ▶ ボタンで。「サイズを揃える」を押すと、コマ同士の大きさの比率が元画像どおりになります（大きさはコマごとのスライダーでも調整できます）。</p>
     <p class="note" id="cellsHint">シート画像を読み込むと、ここに動くプレビューが並びます。</p>
     <div id="cellGrid"></div>
     <div class="bar-wrap" id="barWrap"><div class="bar" id="bar"></div></div>
@@ -266,6 +290,10 @@
           <option value="3">3回</option><option value="4">4回</option>
         </select>
       </label>
+    </div>
+    <div class="row">
+      <span style="font-size:14px;font-weight:700">確認用の背景色:</span>
+      <span class="seg" id="bgPickB" style="align-items:center"></span>
     </div>
     <div class="out-preview">
       <canvas id="playB" width="320" height="270" hidden></canvas>
@@ -636,12 +664,12 @@ const PRESETS = {
 };
 const PRESET_KEYS = Object.keys(PRESETS);
 
-// 1フレーム描画。spriteは余白を切り詰めたcanvas
-function drawSprite(ctx, W, H, sprite, presetKey, t, A) {
+// 1フレーム描画。spriteは余白を切り詰めたcanvas。scはコマごとの大きさ(1=標準)
+function drawSprite(ctx, W, H, sprite, presetKey, t, A, sc = 1) {
   const pr = PRESETS[presetKey] || PRESETS.pyon;
   const tr = pr.fn(t, A) || {};
   const fit = 0.76;
-  const s0 = Math.min(W * fit / sprite.width, H * fit / sprite.height);
+  const s0 = Math.min(W * fit / sprite.width, H * fit / sprite.height) * sc;
   const w = sprite.width * s0, h = sprite.height * s0;
   const u = Math.min(W, H);
   ctx.clearRect(0, 0, W, H);
@@ -849,8 +877,8 @@ const sleep0 = () => new Promise((r) => setTimeout(r));
 const SIZE = { stamp: { w: 320, h: 270 }, emoji: { w: 180, h: 180 }, main: { w: 240, h: 240 } };
 let sheetFileA = null; // 読み込んだシートのFile(設定変更時の再処理用)
 let spritesA = [];     // 自動検出した各コマのcanvas(読み順)
-let cells = [];        // {sprite, preset, use, el, cv, ctx, useCk, mainRd, resEl, result}
-let mainIndex = 0;
+let cells = [];        // {sprite, preset, scale, use, el, cv, ctx, useCk, mainRd, noSpan, resEl, result}
+let mainEntry = null;  // メイン画像に使うセル(スタンプのみ)
 let resultsStale = true;
 
 function kindA() { return document.querySelector('input[name=kind]:checked').value; }
@@ -929,8 +957,30 @@ function buildCells() {
     cv.height = Math.round(128 * ratio);
     const sel = document.createElement('select');
     fillPresetSelect(sel, 'pyon');
+
+    const sizeRow = document.createElement('div');
+    sizeRow.className = 'sizerow';
+    const sizeRg = document.createElement('input');
+    sizeRg.type = 'range';
+    sizeRg.min = 20;
+    sizeRg.max = 150;
+    sizeRg.value = 100;
+    const sizeVal = document.createElement('span');
+    sizeVal.textContent = '100%';
+    sizeRow.append('大きさ', sizeRg, sizeVal);
+
     const meta = document.createElement('div');
     meta.className = 'meta';
+    const mvL = document.createElement('button');
+    mvL.type = 'button';
+    mvL.className = 'mv';
+    mvL.textContent = '◀';
+    mvL.title = 'ひとつ前へ';
+    const mvR = document.createElement('button');
+    mvR.type = 'button';
+    mvR.className = 'mv';
+    mvR.textContent = '▶';
+    mvR.title = 'ひとつ後ろへ';
     const useCk = document.createElement('input');
     useCk.type = 'checkbox';
     useCk.checked = true;
@@ -938,8 +988,9 @@ function buildCells() {
     useLb.append(useCk, ' 使う');
     const noSpan = document.createElement('span');
     noSpan.className = 'no';
+    noSpan.title = 'ドラッグで並べ替え';
     noSpan.textContent = String(idx + 1).padStart(2, '0');
-    meta.append(noSpan, useLb);
+    meta.append(mvL, noSpan, mvR, useLb);
     let mainRd = null;
     if (kind === 'stamp') {
       mainRd = document.createElement('input');
@@ -951,20 +1002,74 @@ function buildCells() {
     }
     const resEl = document.createElement('div');
     resEl.className = 'res';
-    el.append(cv, sel, meta, resEl);
+    el.append(cv, sel, sizeRow, meta, resEl);
     $('cellGrid').appendChild(el);
 
-    const entry = { sprite, preset: sel.value, use: true, el, cv, ctx: cv.getContext('2d'), useCk, mainRd, resEl, result: null };
+    const entry = { sprite, preset: sel.value, scale: 1, use: true, el, cv, ctx: cv.getContext('2d'), useCk, mainRd, noSpan, sizeRg, sizeVal, resEl, result: null };
     sel.onchange = () => { entry.preset = sel.value; entry.result = null; resEl.innerHTML = ''; markStale(); };
+    sizeRg.oninput = () => {
+      entry.scale = sizeRg.value / 100;
+      sizeVal.textContent = sizeRg.value + '%';
+      entry.result = null;
+      resEl.innerHTML = '';
+      markStale();
+    };
     useCk.onchange = () => { entry.use = useCk.checked; el.classList.toggle('off', !entry.use); markStale(); };
-    if (mainRd) mainRd.onchange = () => { mainIndex = cells.indexOf(entry); markStale(); };
+    if (mainRd) mainRd.onchange = () => { mainEntry = entry; markStale(); };
+    mvL.onclick = () => moveCell(entry, -1);
+    mvR.onclick = () => moveCell(entry, 1);
+    // 番号をつかんでドラッグ＆ドロップでも並べ替えできる
+    noSpan.draggable = true;
+    noSpan.ondragstart = () => { dragEntry = entry; };
+    el.ondragover = (e) => { e.preventDefault(); el.classList.add('dragover'); };
+    el.ondragleave = () => el.classList.remove('dragover');
+    el.ondrop = (e) => {
+      e.preventDefault();
+      el.classList.remove('dragover');
+      if (dragEntry && dragEntry !== entry) {
+        cells.splice(cells.indexOf(dragEntry), 1);
+        cells.splice(cells.indexOf(entry), 0, dragEntry);
+        renumberCells();
+      }
+      dragEntry = null;
+    };
     cells.push(entry);
   });
-  mainIndex = 0;
+  mainEntry = cells[0] || null;
   if (kind === 'stamp' && cells[0]) cells[0].mainRd.checked = true;
   $('genBtn').disabled = !cells.length;
   markStale();
 }
+let dragEntry = null;
+function moveCell(entry, dir) {
+  const i = cells.indexOf(entry);
+  const j = i + dir;
+  if (j < 0 || j >= cells.length) return;
+  cells.splice(i, 1);
+  cells.splice(j, 0, entry);
+  renumberCells();
+}
+function renumberCells() {
+  cells.forEach((c, i) => {
+    c.noSpan.textContent = String(i + 1).padStart(2, '0');
+    $('cellGrid').appendChild(c.el); // appendChildで実DOMも並べ替わる
+  });
+}
+// 全コマの大きさの比率を元画像どおりに揃える(いちばん大きいコマが枠に収まる縮尺が基準)
+$('unifyBtn').onclick = () => {
+  if (!cells.length) return;
+  const { w: W, h: H } = SIZE[kindA()];
+  const ratios = cells.map((c) => Math.min(W / c.sprite.width, H / c.sprite.height));
+  const base = Math.min(...ratios);
+  cells.forEach((c, i) => {
+    c.scale = Math.max(0.2, Math.min(1.5, base / ratios[i]));
+    c.sizeRg.value = Math.round(c.scale * 100);
+    c.sizeVal.textContent = c.sizeRg.value + '%';
+    c.result = null;
+    c.resEl.innerHTML = '';
+  });
+  markStale();
+};
 function markStale() {
   resultsStale = true;
   $('zipBtn').disabled = true;
@@ -978,18 +1083,18 @@ function markStale() {
   const t = (performance.now() % dur) / dur;
   const A = intensityA();
   for (const c of cells) {
-    drawSprite(c.ctx, c.cv.width, c.cv.height, c.sprite, c.preset, t, A);
+    drawSprite(c.ctx, c.cv.width, c.cv.height, c.sprite, c.preset, t, A, c.scale);
   }
 })();
 
-function renderFrames(sprite, presetKey, W, H, N, A) {
+function renderFrames(sprite, presetKey, W, H, N, A, sc = 1) {
   const c = document.createElement('canvas');
   c.width = W;
   c.height = H;
   const ctx = c.getContext('2d', { willReadFrequently: true });
   const frames = [];
   for (let i = 0; i < N; i++) {
-    drawSprite(ctx, W, H, sprite, presetKey, i / N, A);
+    drawSprite(ctx, W, H, sprite, presetKey, i / N, A, sc);
     frames.push(new Uint8Array(ctx.getImageData(0, 0, W, H).data.buffer));
   }
   return frames;
@@ -998,11 +1103,11 @@ function renderFrames(sprite, presetKey, W, H, N, A) {
 let mainResult = null; // {bytes} 240×240 APNG (スタンプ用)
 let tabResult = null;  // {bytes} 96×74 静止PNG
 
-async function makeTabPng(sprite) {
+async function makeTabPng(sprite, sc = 1) {
   const c = document.createElement('canvas');
   c.width = 96;
   c.height = 74;
-  drawSprite(c.getContext('2d'), 96, 74, sprite, 'pyon', 0, 0); // 動きなしの1コマ
+  drawSprite(c.getContext('2d'), 96, 74, sprite, 'pyon', 0, 0, sc); // 動きなしの1コマ
   return canvasToPngBytes(c);
 }
 
@@ -1025,7 +1130,7 @@ $('genBtn').onclick = async () => {
     for (const cell of active) {
       $('genStatus').textContent = `生成中… ${done + 1} / ${totalJobs}`;
       await sleep0();
-      const frames = renderFrames(cell.sprite, cell.preset, W, H, N, A);
+      const frames = renderFrames(cell.sprite, cell.preset, W, H, N, A, cell.scale);
       const res = await encodeAutoAPNG({ w: W, h: H, frames, delays, loops });
       cell.result = res;
       const kb = (res.bytes.length / 1024).toFixed(0);
@@ -1039,18 +1144,18 @@ $('genBtn').onclick = async () => {
       done++;
       $('bar').style.width = `${(done / totalJobs) * 100}%`;
     }
-    const mainCell = (kind === 'stamp' && cells[mainIndex] && cells[mainIndex].use) ? cells[mainIndex] : active[0];
+    const mainCell = (kind === 'stamp' && mainEntry && mainEntry.use) ? mainEntry : active[0];
     if (kind === 'stamp') {
       $('genStatus').textContent = `メイン画像を生成中…`;
       await sleep0();
-      const mf = renderFrames(mainCell.sprite, mainCell.preset, 240, 240, N, A);
+      const mf = renderFrames(mainCell.sprite, mainCell.preset, 240, 240, N, A, mainCell.scale);
       mainResult = await encodeAutoAPNG({ w: 240, h: 240, frames: mf, delays, loops });
       done++;
       $('bar').style.width = '100%';
     } else {
       mainResult = null;
     }
-    tabResult = await makeTabPng(mainCell.sprite);
+    tabResult = await makeTabPng(mainCell.sprite, mainCell.scale);
     resultsStale = false;
     $('zipBtn').disabled = false;
     const overs = active.filter((c) => c.result && c.result.over).length;
@@ -1270,6 +1375,40 @@ $('convBtn').onclick = async () => {
   }
 };
 $('dlBtn').onclick = () => resultB && downloadBytes(resultB.bytes, 'animation.png');
+
+/* ==================================================================
+ * 確認用の背景色(切り出しくんと同じ7色)。書き出しには影響しない
+ * ================================================================== */
+const PREVIEW_BGS = [
+  { label: '透明', css: 'repeating-conic-gradient(#ececec 0% 25%, #fff 0% 50%) 0 0/14px 14px' },
+  { label: '白', css: '#ffffff' },
+  { label: 'マゼンタ', css: '#ff00ff' },
+  { label: '青', css: '#60a5fa' },
+  { label: '黒', css: '#000000' },
+  { label: '緑', css: '#16a34a' },
+  { label: 'オレンジ', css: '#f97316' },
+];
+let previewBgIdx = 0;
+function renderBgPickers() {
+  for (const id of ['bgPickA', 'bgPickB']) {
+    const wrap = $(id);
+    wrap.innerHTML = '';
+    PREVIEW_BGS.forEach((opt, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'swatch' + (i === previewBgIdx ? ' on' : '');
+      b.title = opt.label;
+      b.style.background = opt.css;
+      b.onclick = () => {
+        previewBgIdx = i;
+        document.documentElement.style.setProperty('--pvbg', opt.css);
+        renderBgPickers();
+      };
+      wrap.appendChild(b);
+    });
+  }
+}
+renderBgPickers();
 
 /* ==================================================================
  * タブ切り替え
