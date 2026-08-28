@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>時間あつめゲーム</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    background: linear-gradient(#fef6e4, #ffe3e3);
+    font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
+    touch-action: none;
+  }
+  #game {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #hud {
+    position: absolute;
+    top: 12px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 16px;
+    font-size: 22px;
+    font-weight: bold;
+    color: #6b4a2f;
+    z-index: 10;
+    text-shadow: 1px 1px 0 #fff;
+  }
+  .player {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    font-size: 48px;
+    line-height: 60px;
+    text-align: center;
+    user-select: none;
+    transition: transform 0.05s;
+  }
+  .item {
+    position: absolute;
+    font-size: 34px;
+    user-select: none;
+  }
+  #overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.9);
+    text-align: center;
+    z-index: 20;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  #overlay h1 {
+    font-size: 32px;
+    color: #6b4a2f;
+    margin-bottom: 10px;
+  }
+  #overlay p {
+    font-size: 18px;
+    color: #7a5c40;
+    margin: 6px 0;
+  }
+  #overlay button {
+    margin-top: 20px;
+    font-size: 22px;
+    padding: 12px 32px;
+    border: none;
+    border-radius: 30px;
+    background: #ffb703;
+    color: #fff;
+    font-weight: bold;
+    box-shadow: 0 4px 0 #e08e00;
+    cursor: pointer;
+  }
+  #overlay button:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #e08e00;
+  }
+  #score-big {
+    font-size: 26px;
+    font-weight: bold;
+    color: #ff6b6b;
+  }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="hud">
+    <div id="scoreLabel">⏳ 時間: 0</div>
+    <div id="timeLabel">残り: 60</div>
+  </div>
+  <div id="player" class="player">🐣</div>
+  <div id="overlay">
+    <h1>⏳ 時間あつめゲーム</h1>
+    <p>左右にうごいて「⏳」をあつめよう！</p>
+    <p>「👹」にはあたらないように！</p>
+    <p>矢印キー ← → か、画面タッチでうごかせます</p>
+    <button id="startBtn">スタート</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  const game = document.getElementById('game');
+  const player = document.getElementById('player');
+  const overlay = document.getElementById('overlay');
+  const startBtn = document.getElementById('startBtn');
+  const scoreLabel = document.getElementById('scoreLabel');
+  const timeLabel = document.getElementById('timeLabel');
+
+  let gameW, gameH;
+  let playerX;
+  const playerSize = 60;
+  const playerY_ratio = 0.82;
+  let playerSpeed = 8;
+
+  let leftHeld = false, rightHeld = false;
+  let touchTargetX = null;
+
+  let score = 0;
+  let timeLeft = 60;
+  let running = false;
+  let items = [];
+  let spawnTimer = 0;
+  let spawnInterval = 55;
+  let lastTickTime = null;
+  let rafId = null;
+  let countdownId = null;
+
+  function resize() {
+    gameW = game.clientWidth;
+    gameH = game.clientHeight;
+    if (playerX === undefined) playerX = gameW / 2 - playerSize / 2;
+    playerX = Math.min(Math.max(playerX, 0), gameW - playerSize);
+    positionPlayer();
+  }
+  window.addEventListener('resize', resize);
+
+  function positionPlayer() {
+    player.style.left = playerX + 'px';
+    player.style.top = (gameH * playerY_ratio) + 'px';
+  }
+
+  function resetGame() {
+    score = 0;
+    timeLeft = 60;
+    items.forEach(it => it.el.remove());
+    items = [];
+    spawnTimer = 0;
+    playerX = gameW / 2 - playerSize / 2;
+    positionPlayer();
+    updateHUD();
+  }
+
+  function updateHUD() {
+    scoreLabel.textContent = '⏳ 時間: ' + score;
+    timeLabel.textContent = '残り: ' + timeLeft;
+  }
+
+  function spawnItem() {
+    const isBad = Math.random() < 0.35;
+    const el = document.createElement('div');
+    el.className = 'item';
+    el.textContent = isBad ? '👹' : '⏳';
+    const size = 34;
+    const x = Math.random() * (gameW - size);
+    el.style.left = x + 'px';
+    el.style.top = '-40px';
+    game.appendChild(el);
+    items.push({
+      el: el,
+      x: x,
+      y: -40,
+      size: size,
+      bad: isBad,
+      speed: 2.5 + Math.random() * 2 + (60 - timeLeft) * 0.02
+    });
+  }
+
+  function rectsOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
+    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+  }
+
+  function update() {
+    if (!running) return;
+
+    if (touchTargetX !== null) {
+      const diff = touchTargetX - (playerX + playerSize / 2);
+      if (Math.abs(diff) > 2) {
+        playerX += Math.sign(diff) * Math.min(Math.abs(diff), playerSpeed);
+      }
+    } else {
+      if (leftHeld) playerX -= playerSpeed;
+      if (rightHeld) playerX += playerSpeed;
+    }
+    playerX = Math.min(Math.max(playerX, 0), gameW - playerSize);
+    positionPlayer();
+
+    spawnTimer++;
+    if (spawnTimer >= spawnInterval) {
+      spawnTimer = 0;
+      spawnItem();
+    }
+
+    const playerRect = {
+      x: playerX + 10,
+      y: gameH * playerY_ratio + 10,
+      w: playerSize - 20,
+      h: playerSize - 20
+    };
+
+    for (let i = items.length - 1; i >= 0; i--) {
+      const it = items[i];
+      it.y += it.speed;
+      it.el.style.top = it.y + 'px';
+
+      if (rectsOverlap(playerRect.x, playerRect.y, playerRect.w, playerRect.h,
+                        it.x + 4, it.y + 4, it.size - 8, it.size - 8)) {
+        if (it.bad) {
+          endGame();
+          return;
+        } else {
+          score++;
+          updateHUD();
+        }
+        it.el.remove();
+        items.splice(i, 1);
+        continue;
+      }
+
+      if (it.y > gameH + 40) {
+        it.el.remove();
+        items.splice(i, 1);
+      }
+    }
+
+    rafId = requestAnimationFrame(update);
+  }
+
+  function startCountdown() {
+    lastTickTime = Date.now();
+    countdownId = setInterval(() => {
+      timeLeft--;
+      updateHUD();
+      if (timeLeft <= 0) {
+        endGame();
+      }
+    }, 1000);
+  }
+
+  function startGame() {
+    resize();
+    resetGame();
+    running = true;
+    overlay.classList.add('hidden');
+    startCountdown();
+    rafId = requestAnimationFrame(update);
+  }
+
+  function endGame() {
+    running = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    if (countdownId) clearInterval(countdownId);
+    overlay.innerHTML =
+      '<h1>⏳ おわり！</h1>' +
+      '<p id="score-big">あつめた時間: ' + score + ' こ</p>' +
+      '<p>もう一度あそぶ？</p>' +
+      '<button id="startBtn2">もういちど</button>';
+    overlay.classList.remove('hidden');
+    document.getElementById('startBtn2').addEventListener('click', startGame);
+  }
+
+  startBtn.addEventListener('click', startGame);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') { leftHeld = true; touchTargetX = null; }
+    if (e.key === 'ArrowRight') { rightHeld = true; touchTargetX = null; }
+  });
+  document.addEventListener('keyup', (e) => {
+    if (e.key === 'ArrowLeft') leftHeld = false;
+    if (e.key === 'ArrowRight') rightHeld = false;
+  });
+
+  function handleTouch(e) {
+    if (!running) return;
+    const touch = e.touches ? e.touches[0] : e;
+    const rect = game.getBoundingClientRect();
+    touchTargetX = touch.clientX - rect.left;
+  }
+  game.addEventListener('touchstart', handleTouch, { passive: true });
+  game.addEventListener('touchmove', handleTouch, { passive: true });
+  game.addEventListener('touchend', () => { touchTargetX = null; }, { passive: true });
+
+  game.addEventListener('mousedown', (e) => { handleTouch(e); });
+  game.addEventListener('mousemove', (e) => { if (e.buttons === 1) handleTouch(e); });
+  game.addEventListener('mouseup', () => { touchTargetX = null; });
+
+  resize();
+})();
+</script>
+</body>
+</html>
