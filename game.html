@@ -10,7 +10,7 @@
     padding: 0;
     height: 100%;
     overflow: hidden;
-    background: linear-gradient(#fef6e4, #ffe3e3);
+    background: linear-gradient(#bfe3f2 0%, #eaf6fb 55%, #eaf6fb 100%);
     font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
     touch-action: none;
   }
@@ -19,6 +19,66 @@
     width: 100%;
     height: 100vh;
     overflow: hidden;
+  }
+  .city-layer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  #buildings {
+    bottom: 90px;
+    height: 42%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+  }
+  #buildings .bldg {
+    width: 11%;
+    background: linear-gradient(#8fa6c2, #6f88a8);
+    border-radius: 4px 4px 0 0;
+    box-shadow: inset -4px 0 0 rgba(0,0,0,0.08);
+    position: relative;
+  }
+  #buildings .bldg::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    background-image:
+      repeating-linear-gradient(to bottom, rgba(255,240,150,0.55) 0 6px, transparent 6px 16px),
+      repeating-linear-gradient(to right, rgba(255,240,150,0.55) 0 6px, transparent 6px 16px);
+    background-size: 100% 16px, 16px 100%;
+    opacity: 0.5;
+  }
+  #cloud1, #cloud2 {
+    top: 8%;
+    font-size: 40px;
+    opacity: 0.85;
+  }
+  #cloud1 { left: 8%; }
+  #cloud2 { left: 62%; top: 14%; font-size: 30px; }
+  #sun {
+    top: 6%;
+    right: 8%;
+    font-size: 46px;
+    filter: drop-shadow(0 0 10px rgba(255,210,90,0.6));
+  }
+  #ground {
+    bottom: 0;
+    height: 90px;
+    background: linear-gradient(#dfe4e8, #c7ced6);
+    border-top: 4px dashed #fff9;
+  }
+  #ground::after {
+    content: '';
+    position: absolute;
+    top: 40px;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: repeating-linear-gradient(to right, #fff 0 30px, transparent 30px 60px);
+    opacity: 0.7;
   }
   #hud {
     position: absolute;
@@ -36,6 +96,7 @@
   }
   .player {
     position: absolute;
+    z-index: 5;
     width: 60px;
     height: 60px;
     font-size: 48px;
@@ -46,6 +107,7 @@
   }
   .item {
     position: absolute;
+    z-index: 5;
     font-size: 34px;
     user-select: none;
   }
@@ -98,6 +160,19 @@
 </head>
 <body>
 <div id="game">
+  <div id="sun" class="city-layer">☀️</div>
+  <div id="cloud1" class="city-layer">☁️</div>
+  <div id="cloud2" class="city-layer">☁️</div>
+  <div id="buildings" class="city-layer">
+    <div class="bldg" style="height:70%"></div>
+    <div class="bldg" style="height:45%"></div>
+    <div class="bldg" style="height:85%"></div>
+    <div class="bldg" style="height:55%"></div>
+    <div class="bldg" style="height:65%"></div>
+    <div class="bldg" style="height:40%"></div>
+    <div class="bldg" style="height:75%"></div>
+  </div>
+  <div id="ground" class="city-layer"></div>
   <div id="hud">
     <div id="scoreLabel">⏳ 時間: 0</div>
     <div id="timeLabel">残り: 60</div>
