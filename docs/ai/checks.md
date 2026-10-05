@@ -47,7 +47,8 @@
 ## 5. AI 作業設定の変更（`AGENTS.md`、`CLAUDE.md`、`.claude/`）
 
 - [ ] `node .claude/hooks/check-claude-setup.mjs` の結果が「不合格 0件」
-- [ ] 新しい Claude Code セッションで、`/memory`、`/hooks`、`/agents`、`/permissions` の表示を利用者が確かめた（実機での読み込み確認）
+- [ ] 新しい Claude Code セッションで、`/memory`、`/skills`、`/hooks`、`/permissions` の表示を利用者が確かめた（実機での読み込み確認）
+- [ ] 確認役は `/agents` では一覧できないため、実際に `project-reviewer` へ依頼して起動するかを確かめた
 - [ ] 許可の範囲を広げていない（`bypassPermissions`、Bash の全許可などを追加していない）
 
 ## 6. 公開・本番に関わる操作

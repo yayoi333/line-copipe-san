@@ -2,10 +2,9 @@
 name: Deploy static content to Pages
 
 on:
-  # main への push による自動公開は止めた（2026-10-05、GitHub を外部公開しない方針）。
-  # 再開するときは次の2行を戻す:
-  # push:
-  #   branches: ["main"]
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["main"]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:

@@ -8,7 +8,7 @@ CLAUDE.local.md
 .claude/settings.local.json
 # セットアップ時のバックアップ
 .claude-setup-backup/
-# 秘密情報（Git に入れない）
+# 秘密情報（このリポジトリは public。Pagesにも公開される）
 .env
 .env.*
 *.pem

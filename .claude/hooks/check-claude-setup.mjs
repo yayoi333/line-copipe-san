@@ -145,7 +145,7 @@ function frontmatter(text) {
       data[lastKey] = v === "" ? [] : scalar(v);
       continue;
     }
-    const item = line.match(/^\s+-\s+(.*)$/);
+    const item = line.match(/^\s*-\s+(.*)$/);
     if (item && lastKey && Array.isArray(data[lastKey])) {
       data[lastKey].push(scalar(item[1].trim()));
       continue;
@@ -342,7 +342,10 @@ function checkHooks(rel, hooks, shared) {
         const key = JSON.stringify([g.matcher ?? null, h.type, h.command ?? null, h.args ?? null, h.url ?? null]);
         if (seen.has(key)) errors.push(`${at}: 同じフックが重複して登録されている`);
         seen.add(key);
-        const refs = [h.command, ...(Array.isArray(h.args) ? h.args : [])].filter((x) => typeof x === "string");
+        // exec 形式（args あり）は要素ごと、シェル形式は command を空白で区切って調べる。
+        const refs = Array.isArray(h.args)
+          ? [h.command, ...h.args].filter((x) => typeof x === "string")
+          : typeof h.command === "string" ? h.command.split(/\s+/).map((x) => x.replace(/["']/g, "")) : [];
         if (!refs.some((x) => x.includes("check-claude-setup.mjs"))) return;
         selfCount++;
         if (event !== "Stop") errors.push(`${at}: 構造検査フックが Stop 以外（${event}）に登録されている`);
@@ -384,12 +387,17 @@ function checkSkills() {
       continue;
     }
     const fm = frontmatter(text);
-    if (!fm.has || !fm.closed) {
-      errors.push(`${rel}: YAML フロントマター（--- で囲む）がない、または閉じていない`);
+    if (fm.has && !fm.closed) {
+      errors.push(`${rel}: YAML フロントマター（--- で囲む）が閉じていない`);
       continue;
     }
-    const { data } = fm;
-    for (const u of fm.unknown) warnings.push(`${rel}: 簡易解析で読めない行 "${u}"`);
+    // フロントマターは省略できる（公式資料）。作成した2つの Skill だけは必須にする。
+    if (!fm.has && OWN_SKILLS.includes(d.name)) {
+      errors.push(`${rel}: YAML フロントマター（--- で囲む）がない`);
+      continue;
+    }
+    const data = fm.has ? fm.data : {};
+    for (const u of fm.unknown || []) warnings.push(`${rel}: 簡易解析で読めない行 "${u}"`);
     const name = typeof data.name === "string" ? data.name : d.name;
     if (names.has(name)) errors.push(`${rel}: スキル名 "${name}" が ${names.get(name)} と重複`);
     names.set(name, rel);
@@ -405,7 +413,7 @@ function checkSkills() {
       if (broad.length) errors.push(`${rel}: allowed-tools に広い許可（${broad.join(", ")}）`);
       else warnings.push(`${rel}: allowed-tools がある（承認の省略になる。必要性を確認する）`);
     }
-    if (!fm.body.includes("$ARGUMENTS")) warnings.push(`${rel}: 本文に $ARGUMENTS がない`);
+    if (!(fm.body || "").includes("$ARGUMENTS")) warnings.push(`${rel}: 本文に $ARGUMENTS がない`);
   }
 }
 
@@ -540,6 +548,9 @@ function blockReason() {
     `AI作業設定の構造検査が不合格です（${errors.length}件）。`,
     ...list,
     "上の項目を直してから終了してください。直せない場合は、原因と必要な情報を利用者に報告してください。",
+    ...(errors.some((e) => e.startsWith(".claude/settings.local.json"))
+      ? ["`.claude/settings.local.json` は利用者の個人用設定です。編集せずに、該当の項目を利用者に報告してください。"]
+      : []),
     "このフックは同じ停止の続きでは再ブロックしません。",
   ].join("\n").slice(0, 9000);
 }
