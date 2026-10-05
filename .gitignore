@@ -1,3 +1,21 @@
 node_modules/
 .DS_Store
 Thumbs.db
+
+# --- Claude Code 作業環境（個人用・一時ファイル） ---
+# 個人用の指示と設定
+CLAUDE.local.md
+.claude/settings.local.json
+# セットアップ時のバックアップ
+.claude-setup-backup/
+# 秘密情報（Git に入れない）
+.env
+.env.*
+*.pem
+*.key
+secrets/
+# 一時ログ・非公開の作業記録・ローカル成果物
+*.log
+tasks/private/
+outputs/*
+!outputs/README.md
