@@ -17,7 +17,7 @@ AIエージェント（Claude Code、Codex など）と人がこのリポジト�
 | `LINE申請コピペさん_統合ブックマークレット.txt`、`index.html`、`ブックマーク登録用.html` | 生成物 | 手で編集しない |
 | `tagm.html` | タグマネージャー（単独のページ。生成の対象外） | 直接編集する |
 | `README.md` | 利用者向けの説明 | 機能を変えたら更新する |
-| `.github/workflows/static.yml` | main への push で GitHub Pages に公開する設定（方針上は使わない） | 承認なしに変更しない |
+| `.github/workflows/static.yml` | GitHub Pages への公開（手動実行のみ。自動実行は止めた） | 承認なしに変更・実行しない |
 
 参照先（必要なときに読む）:
 
@@ -39,7 +39,7 @@ AIエージェント（Claude Code、Codex など）と人がこのリポジト�
 ## 変更境界（このリポジトリ固有）
 
 - GitHub は保管場所として使い、外部には公開しない（利用者の方針）。リポジトリを公開する変更や、GitHub Pages を有効にする変更はしない。
-  ただし `static.yml` は、main への push で `.git` と `.github` 以外のすべてを Pages に配信する設定のまま残っている。Pages が動いている間は、main への push が公開になる。
+  `static.yml` を手動で実行すると、`.git` と `.github` 以外のすべてが Pages に配信される。
   非公開のリポジトリでも、秘密情報、個人情報、未発表の作品情報は書かない。コミットしない。
 - ブックマークレットは LINE 側の保存・リクエスト・申請ボタンを押さない。この挙動を変えない。
 - 生成物3ファイルは手で編集しない。`line-cm-helper.source.js` を直してから生成し直す。
